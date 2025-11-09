@@ -14,35 +14,10 @@
     body {
       margin: 0;
       padding: 20px;
-      padding-bottom: 130px;
       background: #000000;
       color: #ffffff;
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
       min-height: 100vh;
-    }
-
-    /* Logo fisso in basso a destra */
-    .floating-logo {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 999;
-      background: rgba(0, 0, 0, 0.8);
-      padding: 10px;
-      border-radius: 10px;
-      backdrop-filter: blur(5px);
-    }
-
-    .floating-logo img {
-      width: 100px;
-      height: auto;
-      display: block;
-      filter: drop-shadow(0 4px 12px rgba(255, 215, 0, 0.3));
-      transition: transform 0.3s ease;
-    }
-
-    .floating-logo img:hover {
-      transform: scale(1.05);
     }
 
     .modal {
@@ -206,7 +181,6 @@
     @media screen and (max-width: 1024px) {
       body {
         padding: 15px;
-        padding-bottom: 120px;
       }
 
       .shipping-table-section {
@@ -236,27 +210,12 @@
         font-size: 13px;
         min-width: 70px;
       }
-
-      .floating-logo img {
-        width: 85px;
-      }
     }
 
     /* Mobile (max 767px) */
     @media screen and (max-width: 767px) {
       body {
         padding: 12px;
-        padding-bottom: 110px;
-      }
-
-      .floating-logo {
-        bottom: 15px;
-        right: 15px;
-        padding: 8px;
-      }
-
-      .floating-logo img {
-        width: 70px;
       }
 
       .shipping-table-section {
@@ -366,17 +325,6 @@
     @media screen and (max-width: 480px) {
       body {
         padding: 10px;
-        padding-bottom: 100px;
-      }
-
-      .floating-logo {
-        bottom: 12px;
-        right: 12px;
-        padding: 6px;
-      }
-
-      .floating-logo img {
-        width: 60px;
       }
 
       .shipping-table-section {
@@ -410,10 +358,6 @@
 
     /* Landscape mobile */
     @media screen and (max-width: 767px) and (orientation: landscape) {
-      body {
-        padding-bottom: 100px;
-      }
-
       .shipping-table thead {
         display: table-header-group;
       }
@@ -441,10 +385,6 @@
         display: table-cell;
         width: auto;
         padding: 8px;
-      }
-
-      .floating-logo img {
-        width: 65px;
       }
     }
   </style>
@@ -479,11 +419,6 @@
     </table>
     <button id="aggiungi-riga" class="add-row-btn">+ Aggiungi riga</button>
   </section>
-
-  <!-- Logo fisso in basso a destra -->
-  <div class="floating-logo">
-    <img src="./media/solespress7272push.png" alt="Solespress" />
-  </div>
 
   <div id="messaggio-modal" class="modal" style="display: none;">
     <div class="modal-content">
