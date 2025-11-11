@@ -124,10 +124,14 @@
       color: #000;
       font-weight: bold;
       font-size: 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: .2s;
     }
 
     .scan-icon:hover {
-      background-color: #FFC700;
+      background: #FFC700;
       transform: translateY(-1px);
       box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3);
     }
@@ -339,7 +343,7 @@
         letter-spacing: 0.5px;
       }
 
-      /* 5 pulsanti su mobile: Scan, Apri, Copia, Invia, Elimina */
+      /* Pulsanti su mobile in una riga - ora con 5 colonne includendo Scan */
       .shipping-table td:nth-child(4),
       .shipping-table td:nth-child(5),
       .shipping-table td:nth-child(6),
@@ -367,6 +371,7 @@
 
       .scan-icon {
         font-size: 18px;
+        padding: 11px 4px;
       }
 
       .shipping-table input[type="text"] {
@@ -408,6 +413,8 @@
       .scanner-controls button {
         font-size: 13px;
         padding: 10px 16px;
+        flex: 1;
+        min-width: 120px;
       }
     }
 
@@ -451,6 +458,12 @@
 
       #scanner-modal h3 {
         font-size: 1rem;
+        margin-bottom: 8px;
+      }
+
+      #scanner-modal p {
+        font-size: 12px;
+        margin-bottom: 10px;
       }
 
       .scanner-controls button {
@@ -491,6 +504,7 @@
         padding: 8px;
       }
 
+      /* Scanner in landscape */
       #scanner-reader {
         max-height: 60vh;
       }
@@ -530,6 +544,7 @@
     <button id="aggiungi-riga" class="add-row-btn">+ Aggiungi riga</button>
   </section>
 
+  <!-- Modale per messaggio tracking -->
   <div id="messaggio-modal" class="modal" style="display: none;">
     <div class="modal-content">
       <span class="close-modal">&times;</span>
@@ -539,7 +554,7 @@
     </div>
   </div>
 
-  <!-- Modale Scanner Barcode -->
+  <!-- Modale per scanner barcode -->
   <div id="scanner-modal" class="modal" style="display: none;">
     <div class="modal-content">
       <span class="close-modal" id="close-scanner">&times;</span>
@@ -755,58 +770,69 @@ ${mittente}`;
         });
       });
 
-      // ========== SCANNER BARCODE ==========
+      // ============================================
+      // SCANNER BARCODE - LETTERE DI VETTURA
+      // ============================================
+
       let html5QrcodeScanner = null;
       let currentScannerInput = null;
       let isScanning = false;
 
+      // Gestione click su pulsante scanner
       document.addEventListener('click', e => {
         if (e.target.classList.contains('scan-barcode')) {
           const row = e.target.closest('tr');
           const inputs = row.querySelectorAll('input[type="text"]');
-          currentScannerInput = inputs[2];
+          currentScannerInput = inputs[2]; // Campo tracking
 
-          document.getElementById('scanner-modal').style.display = 'flex';
-          document.getElementById('scanner-result').style.display = 'none';
+          // Apri modale scanner
+          const scannerModal = document.getElementById('scanner-modal');
+          scannerModal.style.display = 'flex';
+
+          // Reset risultato precedente
+          const resultDiv = document.getElementById('scanner-result');
+          resultDiv.style.display = 'none';
+          resultDiv.textContent = '';
+
+          // Mostra loading, nascondi reader
           document.getElementById('scanner-loading').style.display = 'block';
           document.getElementById('scanner-reader').style.display = 'none';
 
-          setTimeout(() => startScanner(), 300);
+          // AVVIA AUTOMATICAMENTE LO SCANNER
+          setTimeout(() => {
+            startScanner();
+          }, 300);
         }
       });
 
+      // Funzione per avviare lo scanner
       function startScanner() {
         if (isScanning) return;
+
+        // Configurazione semplificata - la libreria usa automaticamente tutti i formati
+        const config = {
+          fps: 10,
+          qrbox: { width: 250, height: 150 }
+        };
 
         html5QrcodeScanner = new Html5Qrcode("scanner-reader");
 
         html5QrcodeScanner.start(
           { facingMode: "environment" },
-          {
-            fps: 10,
-            qrbox: { width: 250, height: 150 },
-            formatsToSupport: [
-              Html5QrcodeSupportedFormats.QR_CODE,
-              Html5QrcodeSupportedFormats.CODE_128,
-              Html5QrcodeSupportedFormats.CODE_39,
-              Html5QrcodeSupportedFormats.CODE_93,
-              Html5QrcodeSupportedFormats.EAN_13,
-              Html5QrcodeSupportedFormats.EAN_8,
-              Html5QrcodeSupportedFormats.UPC_A,
-              Html5QrcodeSupportedFormats.UPC_E,
-              Html5QrcodeSupportedFormats.ITF,
-              Html5QrcodeSupportedFormats.CODABAR
-            ]
-          },
-          (decodedText) => {
+          config,
+          (decodedText, decodedResult) => {
+            // Successo! Barcode scansionato
             if (currentScannerInput) {
               currentScannerInput.value = decodedText;
               currentScannerInput.focus();
             }
 
-            document.getElementById('scanner-result').textContent = `✓ Scansionato: ${decodedText}`;
-            document.getElementById('scanner-result').style.display = 'block';
+            // Mostra risultato
+            const resultDiv = document.getElementById('scanner-result');
+            resultDiv.textContent = `✓ Scansionato: ${decodedText}`;
+            resultDiv.style.display = 'block';
 
+            // Ferma lo scanner dopo successo
             setTimeout(() => {
               stopScanner();
               setTimeout(() => {
@@ -814,7 +840,9 @@ ${mittente}`;
               }, 1500);
             }, 500);
           },
-          () => {}
+          (errorMessage) => {
+            // Errore di scansione (normale durante il processo)
+          }
         ).then(() => {
           isScanning = true;
           document.getElementById('scanner-loading').style.display = 'none';
@@ -822,26 +850,33 @@ ${mittente}`;
           document.getElementById('stop-scanner').style.display = 'inline-block';
         }).catch(err => {
           document.getElementById('scanner-loading').style.display = 'none';
-          alert('Errore avvio fotocamera: ' + err);
+          alert('Errore fotocamera: ' + err);
+          console.error('Camera error:', err);
         });
       }
 
+      // Gestione stop scanner
       function stopScanner() {
         if (html5QrcodeScanner && isScanning) {
           html5QrcodeScanner.stop().then(() => {
             html5QrcodeScanner.clear();
             isScanning = false;
             document.getElementById('stop-scanner').style.display = 'none';
+          }).catch(err => {
+            console.error('Error stopping scanner:', err);
           });
         }
       }
 
       document.getElementById('stop-scanner').addEventListener('click', stopScanner);
+
+      // Gestione chiusura modale scanner
       document.getElementById('close-scanner').addEventListener('click', () => {
         stopScanner();
         document.getElementById('scanner-modal').style.display = 'none';
       });
 
+      // Chiudi modale scanner cliccando fuori
       document.getElementById('scanner-modal').addEventListener('click', (e) => {
         if (e.target.id === 'scanner-modal') {
           stopScanner();
@@ -849,12 +884,19 @@ ${mittente}`;
         }
       });
 
-      // Scanner USB
+      // ============================================
+      // SUPPORTO SCANNER USB (input da tastiera)
+      // ============================================
+
       let usbScannerBuffer = '';
       let usbScannerTimeout = null;
 
+      // Rileva input rapido da scanner USB
       document.addEventListener('keypress', (e) => {
-        if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA') return;
+        if (document.activeElement.tagName === 'INPUT' ||
+            document.activeElement.tagName === 'TEXTAREA') {
+          return;
+        }
 
         if (e.key === 'Enter' && usbScannerBuffer.length > 0) {
           const rows = document.querySelectorAll('#tabella-body tr');
@@ -864,12 +906,15 @@ ${mittente}`;
             if (trackingInput && !trackingInput.value.trim()) {
               trackingInput.value = usbScannerBuffer.trim();
               trackingInput.focus();
+
+              // Feedback visivo
               trackingInput.style.backgroundColor = '#28a745';
               trackingInput.style.color = '#fff';
               setTimeout(() => {
                 trackingInput.style.backgroundColor = '';
                 trackingInput.style.color = '';
               }, 1000);
+
               break;
             }
           }
